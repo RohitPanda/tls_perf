@@ -41,6 +41,7 @@ int main(int argc, char** argv)
         {
 	case 'x':
 	    boolTls = 1;
+            break;
 	case '4':
 	    bool4 = 1;
 	    break;
@@ -110,7 +111,7 @@ int main(int argc, char** argv)
 	    }
 	    else
 	    {
-                double connect_dns, connect_tcp, connect_tls;
+                double connect_dns, connect_tcp, connect_tls, ttfb, total_time;
                 res = curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &connect_dns);
                 if(CURLE_OK == res) 
                 {
@@ -121,12 +122,17 @@ int main(int argc, char** argv)
                     if(CURLE_OK == res) 
                     {
                         printf("%s;%d;", ip, port);
-                        res = curl_easy_getinfo(curl, CURLINFO_APPCONNECT_TIME, &connect_tls);
+                        //res = curl_easy_getinfo(curl, CURLINFO_APPCONNECT_TIME, &connect_tls);
+                        res = curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &connect_tls);
                         if(CURLE_OK == res) 
                         {
                             long code;
                             printf("%.3f;", (connect_tls - connect_dns) * 1000.0);
                             res = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
+                            res = curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &ttfb);
+                            printf("%.3f;", ttfb * 1000.0);
+                            res = curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total_time);
+                            printf("%.3f;", total_time * 1000.0);
                             if(CURLE_OK == res)
                             {
                             	printf("%3ld;TCP/",code);
