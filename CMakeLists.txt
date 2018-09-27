@@ -3,7 +3,7 @@ project(tls_perf)
 
 set(CMAKE_C_STANDARD 11)
 
-set(LIB_DIR  /home/pi/Quic-Test/build)
+set(LIB_DIR  ${CMAKE_CURRENT_LIST_DIR}/external)
 
 include_directories(${LIB_DIR}/boringssl/include src)
 include_directories(${LIB_DIR}/curl-7.58.0/build/include src)
