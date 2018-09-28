@@ -122,8 +122,7 @@ int main(int argc, char** argv)
                     if(CURLE_OK == res) 
                     {
                         printf("%s;%d;", ip, port);
-                        //res = curl_easy_getinfo(curl, CURLINFO_APPCONNECT_TIME, &connect_tls);
-                        res = curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &connect_tls);
+                        res = curl_easy_getinfo(curl, CURLINFO_APPCONNECT_TIME, &connect_tls);
                         if(CURLE_OK == res) 
                         {
                             long code;
