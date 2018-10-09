@@ -29,13 +29,13 @@ size_t write_data(char *buffer, size_t size, size_t nmemb, void *userp)
  */
 int main(int argc, char** argv) 
 {
-    int c , bool3 = 0, bool4 = 0, bool6 = 0, boolTls = 0, bool2 = 0;
+    int c , bool3 = 0, bool4 = 0, bool6 = 0, boolTls = 0, bool2 = 0, bool_fast_open = 0;
     char *url, *ip;
     int port;
     curl_global_init(CURL_GLOBAL_DEFAULT);
     CURL *curl;
     
-    while ((c = getopt(argc, argv, "4632u:p:x")) != -1)
+    while ((c = getopt(argc, argv, "4632Fu:p:x")) != -1)
     {
         switch (c)
         {
@@ -53,6 +53,9 @@ int main(int argc, char** argv)
             break;
         case '2':
             bool2 = 1;
+            break;
+        case 'F':
+            bool_fast_open = 1;
             break;
         case 'u':
             url = optarg;
@@ -97,7 +100,10 @@ int main(int argc, char** argv)
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
 
-        //curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 1L);
+        if(bool_fast_open == 1)
+        {
+            curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
+        }
         /* HTTP/2 */
         if(bool2 == 1)
         {
@@ -128,7 +134,7 @@ int main(int argc, char** argv)
                 {
                     time_t rawtime;
                     time(&rawtime);
-                    printf("%.3f;%li;%s;;", connect_dns * 1000.0, (long)rawtime, url);
+                    printf("%li;%s;", (long)rawtime, url);
                     res = curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &ip);
                     if(CURLE_OK == res)
                     {
@@ -137,7 +143,7 @@ int main(int argc, char** argv)
                         if(CURLE_OK == res)
                         {
                             long code;
-                            printf("%.3f;", (connect_tls - connect_dns) * 1000.0);
+                            printf("%.3f;%.3f;", connect_dns * 1000.0, (connect_tls - connect_dns) * 1000.0);
                             res = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
                             res = curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &ttfb);
                             printf("%.3f;", ttfb * 1000.0);
