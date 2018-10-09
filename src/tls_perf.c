@@ -92,6 +92,8 @@ int main(int argc, char** argv)
         {
             curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
         }
+
+        curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 0L);
         curl_easy_setopt(curl, CURLOPT_URL, url); /*test for tls 1.3 https://tls13.akamai.io*/
         curl_easy_setopt(curl, CURLOPT_DEFAULT_PROTOCOL, "https");
         curl_easy_setopt(curl, CURLOPT_PORT, port);
@@ -143,7 +145,9 @@ int main(int argc, char** argv)
                         if(CURLE_OK == res)
                         {
                             long code;
-                            printf("%.3f;%.3f;", connect_dns * 1000.0, (connect_tls - connect_dns) * 1000.0);
+                            res = curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &connect_tcp);
+                            printf("%.3f;%.3f;%.3f;", connect_dns * 1000.0, (connect_tcp - connect_dns) * 1000.0, (connect_tls - connect_dns) * 1000.0);
+
                             res = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
                             res = curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &ttfb);
                             printf("%.3f;", ttfb * 1000.0);
@@ -151,21 +155,25 @@ int main(int argc, char** argv)
                             printf("%.3f;", total_time * 1000.0);
                             if(CURLE_OK == res)
                             {
-                                printf("%3ld;TCP/",code);
-                                if(bool3 == 1)
+                                printf("%3ld;",code);
+                                if(bool2 == 1)
                                 {
-                                    printf("TLS1.3;");
+                                    printf("HTTP2;");
                                 }
                                 else
                                 {
-                                    printf("TLS1.2;");
+                                    printf("HTTP1.1;");
+                                }
+                                printf("TCP/");
+                                if(bool3 == 1)
+                                {
+                                    printf("TLS1.3\n");
+                                }
+                                else
+                                {
+                                    printf("TLS1.2\n");
                                 }
                             }
-                        }
-                        res = curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &connect_tcp);
-                        if(CURLE_OK == res)
-                        {
-                            printf("%.3f\n", (connect_tcp - connect_dns) * 1000.0);
                         }
                     }
                 }
