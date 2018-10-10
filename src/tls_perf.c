@@ -80,6 +80,14 @@ int main(int argc, char** argv)
     if(curl)
     {
         CURLcode res;
+        char errbuf[CURL_ERROR_SIZE];
+
+        /* provide a buffer to store errors in */
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
+
+        /* set the error buffer as empty before performing a request */
+        errbuf[0] = 0;
+
         if(bool4 == 1)
         {
             curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
@@ -185,7 +193,13 @@ int main(int argc, char** argv)
         }
         else
         {
-            fprintf(stderr, "res: %i\n", (int)res);
+            size_t len = strlen(errbuf);
+            fprintf(stderr, "\nlibcurl: (%d) ", res);
+            if(len)
+              fprintf(stderr, "%s%s", errbuf,
+                      ((errbuf[len - 1] != '\n') ? "\n" : ""));
+            else
+              fprintf(stderr, "%s\n", curl_easy_strerror(res));
             if(boolTls == 1)
             {
                 char *result = malloc(strlen("www.") + strlen(url) + 1);
