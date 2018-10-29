@@ -7,16 +7,16 @@ set(LIB_DIR  /home/pi/Quic-Test/build/)
 
 include_directories(${LIB_DIR}/boringssl/include src)
 include_directories(${LIB_DIR}/curl-7.58.0/build/include src)
+include_directories(/usr/local/include/nghttp2 src)
 
 find_library(SSL ssl HINTS ${LIB_DIR}/boringssl/lib REQUIRED)
 find_library(CRYPTO crypto HINTS ${LIB_DIR}/boringssl/lib REQUIRED)
 find_library(CURL curl HINTS ${LIB_DIR}/curl-7.58.0/build/lib REQUIRED)
-
+find_library(NGHTTP2 libnghttp2.a HINTS /usr/local/lib REQUIRED)
 
 add_executable(tls_perf
         src/tls_perf.c
 )
-target_link_libraries(tls_perf ${CURL} ${SSL} ${CRYPTO} z m pthread dl)
 
  INSTALL(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/build/tls_perf
 	   DESTINATION bin)
@@ -50,3 +50,4 @@ target_link_libraries(tls_perf ${CURL} ${SSL} ${CRYPTO} z m pthread dl)
 	   INCLUDE(CPack)
 	    
    ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+target_link_libraries(tls_perf ${CURL} ${SSL} ${CRYPTO} ${NGHTTP2} z m pthread dl)
