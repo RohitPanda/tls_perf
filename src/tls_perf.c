@@ -24,6 +24,16 @@ size_t write_data(char *buffer, size_t size, size_t nmemb, void *userp)
     return size * nmemb;
 }
 
+
+static size_t header_callback(char *buffer, size_t size,
+                              size_t nitems, void *userdata)
+{
+  /* received header is nitems * size long in 'buffer' NOT ZERO TERMINATED */
+  /* 'userdata' is set with CURLOPT_HEADERDATA */
+    printf("%s", buffer);
+  return nitems * size;
+}
+
 /*
  *
  */
@@ -110,6 +120,8 @@ int main(int argc, char** argv)
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
 
+        //curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
+
         if(bool_fast_open == 1)
         {
             curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 1L);
@@ -117,7 +129,7 @@ int main(int argc, char** argv)
         /* HTTP/2 */
         if(bool2 == 1)
         {
-            curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+            curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
         }
 
         if(bool3 == 1)
@@ -164,13 +176,31 @@ int main(int argc, char** argv)
                             if(CURLE_OK == res)
                             {
                                 printf("%3ld;",code);
-                                if(bool2 == 1)
+                                long http_version;
+                                curl_easy_getinfo(curl, CURLINFO_HTTP_VERSION, &http_version);
+                                switch(http_version)
                                 {
-                                    printf("HTTP2;");
-                                }
-                                else
-                                {
-                                    printf("HTTP1.1;");
+                                    case 0:
+                                    {
+                                        printf("Unknown;");
+                                        break;
+                                    }
+                                    case 1:
+                                    {
+                                        printf("HTTP/1;");
+                                        break;
+                                    }
+                                    case 2:
+                                    {
+                                        printf("HTTP/1.1;");
+                                        break;
+                                    }
+                                    case 3:
+                                    {
+                                        printf("HTTP2;");
+                                        break;
+                                    }
+
                                 }
                                 printf("TCP/");
                                 if(bool3 == 1)
